@@ -11,7 +11,6 @@ export default class Game {
 
     const canvas = document.querySelector("#game")
     this.context = canvas.getContext("2d") //dire quale tecnologia usare per disegnare sul canvas, quindi contesto 2d
-    this.context.fillRect(0, 0, 540, 540)
 
     this.cellSize = 30
     // this.height = 30
@@ -36,7 +35,7 @@ export default class Game {
 
     const cellX = randomX * this.cellSize
     const cellY = randomY * this.cellSize
-    this.food = new Food(cellX, cellY, "#cfff04")
+    this.food = new Food(cellX, cellY, "#000")
     this.renderFood()
   }
 
@@ -49,27 +48,33 @@ export default class Game {
 
   spawnSnake() {
     const initialLength = 3
-    const headX = getRandomNumber(0, this.cellCount - 1) * this.cellSize
-    const headY = getRandomNumber(0, this.cellCount - 1) * this.cellSize
-    const tailX = headX + initialLength * this.cellSize
-    const tailY = headY + initialLength * this.cellSize
+
+    const headX = getRandomNumber(0, this.cellCount - 1)
+    const headY = getRandomNumber(0, this.cellCount - 1)
+    const tailX = headX + (initialLength - 1)
+    const tailY = headY + (initialLength - 1)
+
+    console.log("HEAD:", headX, headY, "TAIL:", tailX, tailY)
 
     this.snake = new Snake()
     this.snake.createSegments(headX, headY, tailX, tailY)
+
     this.renderSnake()
   }
 
   renderSnake() {
     this.snake.segments.forEach((segment, index) => {
       this.context.fillStyle = this.snake.color
-      const posX = segment.x
-      const posY = segment.y
+      const posX = segment.x * this.cellSize
+      const posY = segment.y * this.cellSize
       this.context.fillRect(posX, posY, this.cellSize, this.cellSize)
     })
   }
 
   generateGrid() {
-    this.context.strokeStyle = "#fff"
+    this.context.fillStyle = "#2E4539"
+    this.context.fillRect(0, 0, 540, 540)
+    this.context.strokeStyle = "#EA6521"
     for (let row = 0; row < this.cellCount; row++) {
       this.context.beginPath() // inizio a disegnare il path
       this.context.moveTo(0, row * this.cellSize) // mi sposto in un punto
@@ -77,13 +82,58 @@ export default class Game {
       this.context.stroke()
     }
 
-    this.context.strokeStyle = "#fff"
+    this.context.strokeStyle = "#EA6521"
     for (let column = 0; column < this.cellCount; column++) {
       this.context.beginPath() // inizio a disegnare il path
       this.context.moveTo(column * this.cellSize, 0) // mi sposto in un punto
       this.context.lineTo(column * this.cellSize, 540)
       this.context.stroke()
     }
+  }
+
+  play() {
+    this.speed = 1000
+
+    this.updateAttachedToContext = this.update.bind(this)
+
+    this.interval = window.setInterval(this.updateAttachedToContext, this.speed)
+  }
+
+  update() {
+    const head = { ...this.snake.segments[0] }
+    const direction = this.snake.direction
+    console.log(head, direction)
+
+    switch (direction) {
+      case "left":
+        if (head.x <= 0) {
+          head.x = this.cellCount
+        }
+        head.x = head.x - 1
+        break
+      case "right":
+        if (head.x >= this.cellCount) {
+          head.x = 0
+        }
+        head.x = head.x + 1
+        break
+      case "up":
+        head.y = head.y - 1
+        break
+      case "down":
+        head.y = head.y + 1
+        break
+    }
+
+    this.snake.move(head)
+    this.renderAnimation()
+  }
+
+  renderAnimation() {
+    this.context.clearRect(0, 0, 540, 540)
+    this.generateGrid()
+    this.renderSnake()
+    this.renderFood()
   }
 
   //   testCanvas() {

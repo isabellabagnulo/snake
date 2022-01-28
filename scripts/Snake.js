@@ -3,12 +3,19 @@
 export default class Snake {
   constructor() {
     this.entity = "Snake"
-    this.color = "#fff"
+    this.color = "#991199"
     this.segments = []
-    this.direction = null
+    this.direction = "left"
   }
 
-  createSegments(headX, headY, tailX, tailY) {
-    console.log(headX, headY, tailX, tailY)
+  createSegments(minX, minY, maxX, maxY) {
+    for (let i = minX; i <= maxX; i++) {
+      this.segments.push({ x: i, y: minY })
+    }
+  }
+
+  move(head) {
+    this.segments.pop()
+    this.segments.unshift(head)
   }
 }
