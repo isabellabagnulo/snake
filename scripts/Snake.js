@@ -14,8 +14,16 @@ export default class Snake {
     }
   }
 
-  move(head) {
-    this.segments.pop()
+  setDirection(dir) {
+    if (dir === "left" || dir === "down" || dir === "right" || dir === "up") {
+      this.direction = dir
+    }
+  }
+
+  move(head, hasEaten) {
+    if (!hasEaten) {
+      this.segments.pop()
+    }
     this.segments.unshift(head)
   }
 }
