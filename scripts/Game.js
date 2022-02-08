@@ -1,7 +1,7 @@
 import Food from "./Food.js"
 import Snake from "./Snake.js"
 
-const getRandomNumber = (min, max) => {
+export const getRandomNumber = (min, max) => {
   return Math.round(Math.random() * (max - min)) + min
 }
 
@@ -9,6 +9,8 @@ export default class Game {
   constructor() {
     this.entity = "Game"
     this.playing = false
+
+    this.speed = 100
 
     const canvas = document.querySelector("#game")
     this.context = canvas.getContext("2d") //dire quale tecnologia usare per disegnare sul canvas, quindi contesto 2d
@@ -37,10 +39,20 @@ export default class Game {
     this.initEventListeners()
   }
 
-  //  metodo per creare nuovo cibo ogni volta che il serpente ne mangia uno
   spawnFood() {
-    const randomX = getRandomNumber(0, this.cellCount - 1)
-    const randomY = getRandomNumber(0, this.cellCount - 1)
+    let randomX = getRandomNumber(0, this.cellCount - 1)
+    let randomY = getRandomNumber(0, this.cellCount - 1)
+
+    // console.log("random", randomX, randomY)
+    const isNotEmpty = this.snake.segments.some((segment) => {
+      return segment.x === randomX && segment.y === randomY
+    })
+
+    if (isNotEmpty) {
+      this.spawnFood()
+      return false
+    }
+    // console.log("genero cibo", randomX, randomY)
 
     this.food = new Food(randomX, randomY, "#000")
     this.renderFood()
@@ -50,20 +62,31 @@ export default class Game {
     this.context.fillStyle = this.food.color
     const posX = this.food.x * this.cellSize
     const posY = this.food.y * this.cellSize
-    this.context.fillRect(posX, posY, this.cellSize, this.cellSize)
+
+    // this.context.fillRect(posX, posY, this.cellSize, this.cellSize)
+
+    this.context.drawImage(
+      this.food.image,
+      posX,
+      posY,
+      this.cellSize,
+      this.cellSize
+    )
   }
 
   spawnSnake() {
-    const initialLength = 6
+    const initialLength = 2
 
-    const headX = getRandomNumber(0, this.cellCount - 1)
-    const headY = getRandomNumber(0, this.cellCount - 1)
+    const headX = getRandomNumber(0, this.cellCount - initialLength)
+    const headY = getRandomNumber(0, this.cellCount - initialLength)
     const tailX = headX + (initialLength - 1)
     const tailY = headY + (initialLength - 1)
 
     // console.log("HEAD:", headX, headY, "TAIL:", tailX, tailY)
 
-    this.snake = new Snake()
+    const directions = ["up", "left", "down", "right"]
+    const randomDirection = directions[getRandomNumber(0, 3)]
+    this.snake = new Snake(randomDirection)
     this.snake.createSegments(headX, headY, tailX, tailY)
 
     this.renderSnake()
@@ -86,7 +109,7 @@ export default class Game {
       this.context.beginPath() // inizio a disegnare il path
       this.context.moveTo(0, row * this.cellSize) // mi sposto in un punto
       this.context.lineTo(540, row * this.cellSize)
-      this.context.stroke()
+      //   this.context.stroke()
     }
 
     this.context.strokeStyle = "#EA6521"
@@ -94,16 +117,15 @@ export default class Game {
       this.context.beginPath() // inizio a disegnare il path
       this.context.moveTo(column * this.cellSize, 0) // mi sposto in un punto
       this.context.lineTo(column * this.cellSize, 540)
-      this.context.stroke()
+      //   this.context.stroke()
     }
   }
 
   play() {
     this.playing = true
-    this.spawnFood()
     this.spawnSnake()
+    this.spawnFood()
 
-    this.speed = 200
     this.updateAttachedToContext = this.update.bind(this)
     this.interval = this.createInterval()
   }
