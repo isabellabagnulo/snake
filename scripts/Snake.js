@@ -1,15 +1,15 @@
 // serpentello
 
 export default class Snake {
-  constructor(direction) {
+  constructor(direction, color) {
     this.entity = "Snake"
-    this.color = "#991199"
+    this.color = color
     this.segments = []
     this.direction = direction
   }
 
   createSegments(minX, minY, maxX, maxY) {
-    console.log(this.direction)
+    // console.log(this.direction)
     switch (this.direction) {
       case "left":
         for (let i = minX; i <= maxX; i++) {

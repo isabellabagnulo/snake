@@ -1,16 +1,19 @@
 import Food from "./Food.js"
 import Snake from "./Snake.js"
+import Marquee from "./Marquee.js"
 
 export const getRandomNumber = (min, max) => {
   return Math.round(Math.random() * (max - min)) + min
 }
 
 export default class Game {
-  constructor() {
+  constructor(options) {
     this.entity = "Game"
-    this.playing = false
+    this.options = options
 
-    this.speed = 100
+    this.speed = this.options.speed || 200
+
+    this.playing = false
 
     const canvas = document.querySelector("#game")
     this.context = canvas.getContext("2d") //dire quale tecnologia usare per disegnare sul canvas, quindi contesto 2d
@@ -19,7 +22,7 @@ export default class Game {
     // this.height = 30
 
     this.cellCount = Math.floor(canvas.width / this.cellSize) // sappiamo di avere una griglia di 18 colonne e 18 righe
-    this.generateGrid()
+    this.resetCanvas()
 
     this.gameInputs = new Set([
       // Set è come un array ma con qualcosa in più
@@ -37,6 +40,12 @@ export default class Game {
       ArrowRight: "right",
     }
     this.initEventListeners()
+
+    this.marquee = new Marquee(this.context, {
+      text: "PLAY NOW!",
+    })
+    this.interval = this.createInterval()
+    this.then = Date.now()
   }
 
   spawnFood() {
@@ -86,7 +95,7 @@ export default class Game {
 
     const directions = ["up", "left", "down", "right"]
     const randomDirection = directions[getRandomNumber(0, 3)]
-    this.snake = new Snake(randomDirection)
+    this.snake = new Snake(randomDirection, this.options.colors.snake)
     this.snake.createSegments(headX, headY, tailX, tailY)
 
     this.renderSnake()
@@ -101,8 +110,8 @@ export default class Game {
     })
   }
 
-  generateGrid() {
-    this.context.fillStyle = "#2E4539"
+  resetCanvas() {
+    this.context.fillStyle = this.options.colors.background
     this.context.fillRect(0, 0, 540, 540)
     this.context.strokeStyle = "#EA6521"
     for (let row = 0; row < this.cellCount; row++) {
@@ -125,17 +134,25 @@ export default class Game {
     this.playing = true
     this.spawnSnake()
     this.spawnFood()
-
-    this.updateAttachedToContext = this.update.bind(this)
-    this.interval = this.createInterval()
   }
 
   createInterval() {
-    window.clearInterval(this.interval)
-    return window.setInterval(this.updateAttachedToContext, this.speed)
+    window.cancelAnimationFrame(this.interval)
+    this.updateAttachedToContext = this.update.bind(this)
+    return window.requestAnimationFrame(this.updateAttachedToContext)
   }
 
-  update() {
+  inGame() {
+    this.now = Date.now()
+    const delta = this.now - this.then
+    const interval = 1000 / (5 * this.options.speed)
+
+    if (delta > interval) {
+      this.then = this.now - (delta % interval)
+    } else {
+      return
+    }
+
     const head = { ...this.snake.segments[0] }
     const direction = this.snake.direction
     // console.log(head, direction)
@@ -189,21 +206,33 @@ export default class Game {
     }
 
     this.snake.move(head, hasEaten)
+  }
 
-    this.renderAnimation()
+  update() {
+    this.createInterval()
+    // se non attacchiamo update al this, il contesto è undefined, per questo si usa bind, che forza update ad attaccarsi al contesto
+
+    if (this.playing) {
+      this.inGame()
+    }
+
+    this.context.clearRect(0, 0, 540, 540)
+    this.resetCanvas()
+
+    if (this.playing) {
+      this.renderSnake()
+      this.renderFood()
+    } else {
+      this.marquee.animate()
+    }
   }
 
   endGame() {
     clearInterval(this.interval)
-    this.context.clearRect(0, 0, 540, 540)
-    this.generateGrid()
-  }
-
-  renderAnimation() {
-    this.context.clearRect(0, 0, 540, 540)
-    this.generateGrid()
-    this.renderSnake()
-    this.renderFood()
+    this.playing = false
+    // this.context.clearRect(0, 0, 540, 540)
+    // this.resetCanvas()
+    this.marquee.updateText("GAME OVER")
   }
 
   initEventListeners() {
