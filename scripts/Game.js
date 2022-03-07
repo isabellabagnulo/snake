@@ -14,6 +14,8 @@ export default class Game {
     this.speed = this.options.speed || 200
 
     this.playing = false
+    this.points = 0
+    this.pointsEl = document.querySelector("#points")
 
     const canvas = document.querySelector("#game")
     this.context = canvas.getContext("2d") //dire quale tecnologia usare per disegnare sul canvas, quindi contesto 2d
@@ -39,10 +41,24 @@ export default class Game {
       ArrowLeft: "left",
       ArrowRight: "right",
     }
+
+    const form = document.querySelector("form")
+    form.addEventListener("submit", (event) => {
+      event.preventDefault()
+
+      this.name = document.querySelector("#name").value
+      form.style.display = "none"
+      this.init()
+    })
+
+    this.score = document.querySelector("#score")
+  }
+
+  init() {
     this.initEventListeners()
 
     this.marquee = new Marquee(this.context, {
-      text: "PLAY NOW!",
+      text: `Hi ${this.name} press space to play`,
     })
     this.interval = this.createInterval()
     this.then = Date.now()
@@ -189,8 +205,15 @@ export default class Game {
     const hasEaten = head.x === this.food.x && head.y === this.food.y
 
     if (hasEaten) {
-      // this.speed = this.speed - 50
-      this.interval = this.createInterval()
+      this.points += 1
+      this.pointsEl.innerHTML = this.points
+
+      if (this.points % 10 === 0) {
+        this.options.speed += 0.2
+        console.log("LEVEL UP BABY")
+        console.log(this.options.speed)
+      }
+
       delete this.food
       this.spawnFood()
     }
@@ -230,9 +253,13 @@ export default class Game {
   endGame() {
     clearInterval(this.interval)
     this.playing = false
+    this.points = 0
+    this.pointsEl.innerHTML = this.points
     // this.context.clearRect(0, 0, 540, 540)
     // this.resetCanvas()
     this.marquee.updateText("GAME OVER")
+    this.score.style.display = "block"
+    this.score.innerHTML = `Congratulation ${this.name}, you scored ${this.points} points`
   }
 
   initEventListeners() {

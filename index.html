@@ -9,7 +9,16 @@
 </head>
 <body>
 
-    <canvas id="game" width="540" height="540"></canvas>
+    <div class="box">
+        <canvas id="game" width="540" height="540"></canvas>
+        <span id="score"></span>
+    </div>
+    <span id="points">0</span>
+    <form>
+        <label for="name">Insert your name</label>
+        <input id="name" type="text">
+        <input type="submit" value="submit">
+    </form>
     
     <script type="module" src="index.js"></script>
 </body>

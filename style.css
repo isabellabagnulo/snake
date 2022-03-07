@@ -1,0 +1,22 @@
+body{
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.box{
+    display: flex;
+    align-items: center;
+}
+#points{
+    color: #ff00ff;
+    font-size: 3rem;
+}
+
+#score{
+    display: none;
+}
